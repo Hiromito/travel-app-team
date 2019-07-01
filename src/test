@@ -1,0 +1,25 @@
+db.collection("travel").add({
+        email: email,
+        destination: destination,
+        startdate: startdate,
+        enddate: enddate,
+        comment: comment,
+      })
+      .then(function() {
+          return (dispatch) => {
+            dispatch({
+              type: 'add_travel',
+              data: {
+                destination,
+                startdate,
+                enddate,
+                comment
+              }
+            })
+          }
+      })
+      .catch(function(error) {
+          throw error,
+          console.error("Error writing document: ", error);
+      });
+

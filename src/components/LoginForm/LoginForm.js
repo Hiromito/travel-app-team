@@ -1,4 +1,7 @@
 import React from 'react';
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
+import { Redirect } from 'react-router'
 import {
     CircularProgress,
     Typography,
@@ -7,6 +10,8 @@ import {
     TextField,
     Fade
 } from "@material-ui/core";
+
+import { login, resetPassword } from 'actions/auth'
 import google from "images/google.svg";
 
 
@@ -15,7 +20,9 @@ class LoginForm extends React.Component {
         super (props)
         this.state = {
             loginValue: "",
-            passwordValue: ""
+            passwordValue: "",
+            error: false,
+            redirect: false,
         }
     }
 
@@ -28,9 +35,22 @@ class LoginForm extends React.Component {
         }
     }
 
+    handleLoginButtonClick = (e) => {
+        e.preventDefault()
+        this.props.login(this.state.loginValue, this.state.passwordValue)
+        .then(() => {
+            this.setState({redirect: true})
+        })
+        .catch(() => {
+          this.setState({error: true})
+        })
+    }
+
     render () {
         const { classes } = this.props;
-
+        if (this.state.redirect) {
+            return <Redirect to='/home'/>;
+        }
         return (
             <React.Fragment>
                 <Button size="large" className={classes.googleButton}>
@@ -42,7 +62,7 @@ class LoginForm extends React.Component {
                     <Typography className={classes.formDividerWord}>or</Typography>
                     <div className={classes.formDivider} />
                 </div>
-                <Fade in={this.props.error}>
+                <Fade in={this.state.error}>
                     <Typography color="secondary" className={classes.errorMessage}>
                         Something is wrong with your login or password :(
                     </Typography>
@@ -86,7 +106,7 @@ class LoginForm extends React.Component {
                             this.state.loginValue.length === 0 ||
                             this.state.passwordValue.length === 0
                         }
-                        onClick={this.props.handleLoginButtonClick}
+                        onClick={this.handleLoginButtonClick}
                         variant="contained"
                         color="primary"
                         size="large"
@@ -94,13 +114,6 @@ class LoginForm extends React.Component {
                     Login
                     </Button>
                 )}
-                <Button
-                    color="primary"
-                    size="large"
-                    className={classes.forgetButton}
-                >
-                    Forget Password
-                </Button>
                 </div>
             </React.Fragment>
         )
@@ -197,4 +210,9 @@ const styles = theme => ({
     }
 })
 
-export default withStyles(styles, { withTheme: true })(LoginForm);
+export default connect(
+    state => ({
+        
+    }),
+    dispatch => ({ dispatch, ...bindActionCreators({ login, resetPassword }, dispatch) }),
+  )(withStyles(styles, { withTheme: true })(LoginForm));

@@ -1,4 +1,6 @@
 import React from 'react';
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
 import {
     CircularProgress,
     Typography,
@@ -8,7 +10,10 @@ import {
     Fade
 } from "@material-ui/core";
 import classnames from 'classnames';
+import { Redirect } from 'react-router'
 
+
+import { auth } from 'actions/auth'
 import google from "images/google.svg";
 
 class SignupForm extends React.Component {
@@ -18,6 +23,8 @@ class SignupForm extends React.Component {
             nameValue: "",
             loginValue: "",
             passwordValue: "",
+            registerError: null,
+            redirect: false
         }
     }
 
@@ -37,9 +44,20 @@ class SignupForm extends React.Component {
         }
     }
 
+    handleLoginButtonClick = (e) => {
+        e.preventDefault()
+        this.props.auth(this.state.loginValue, this.state.passwordValue, this.state.nameValue)
+        .then(() => {
+            this.setState({redirect: true})
+        })
+        .catch(e => this.setState({registerError: e.message}))
+    }
+
     render () {
         const { classes } = this.props;
-
+        if (this.state.redirect) {
+            return <Redirect to='/home'/>;
+        }
         return (
             <React.Fragment>
                 <Fade in={this.props.error}>
@@ -92,31 +110,37 @@ class SignupForm extends React.Component {
                     type="password"
                     fullWidth
                 />
+                {
+                  this.state.registerError &&
+                    <Typography variant="subheading" color="error" className="text-center">
+                      Error: {this.state.registerError}
+                    </Typography>
+                }
                 <div className={classes.creatingButtonContainer}>
-                {this.props.isLoading ? (
-                    <CircularProgress size={26} />
-                ) : (
-                    <Button
-                        onClick={this.props.handleLoginButtonClick}
-                        disabled={
-                            this.state.loginValue.length === 0 ||
-                            this.state.passwordValue.length === 0 ||
-                            this.state.nameValue.length === 0
-                        }
-                        size="large"
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        className={classes.createAccountButton}
-                    >
-                        Create your account
-                    </Button>
-                )}
+                    {this.props.isLoading ? (
+                        <CircularProgress size={26} />
+                    ) : (
+                        <Button
+                            onClick={this.handleLoginButtonClick}
+                            disabled={
+                                this.state.loginValue.length === 0 ||
+                                this.state.passwordValue.length === 0 ||
+                                this.state.nameValue.length === 0
+                            }
+                            size="large"
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            className={classes.createAccountButton}
+                        >
+                            Create your account
+                        </Button>
+                    )}
                 </div>
                 <div className={classes.formDividerContainer}>
-                <div className={classes.formDivider} />
-                <Typography className={classes.formDividerWord}>or</Typography>
-                <div className={classes.formDivider} />
+                    <div className={classes.formDivider} />
+                    <Typography className={classes.formDividerWord}>or</Typography>
+                    <div className={classes.formDivider} />
                 </div>
                 <Button
                     size="large"
@@ -222,4 +246,9 @@ const styles = theme => ({
     }
 })
 
-export default withStyles(styles, { withTheme: true })(SignupForm);
+export default connect(
+    state => ({
+      
+    }),
+    dispatch => ({ dispatch, ...bindActionCreators({ auth }, dispatch) }),
+  )(withStyles(styles, { withTheme: true })(SignupForm));
